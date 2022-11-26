@@ -89,7 +89,7 @@ app.post('/reset_password', async (req, res) => {
         if (result.rows.length == 0) { return res.status(400).json({ message: 'Invalid email.' }); }
 
         const resetToken = generateAccess({ email }, '20m')
-        const url = `http://localhost:5173/change_password?token=${resetToken}&email=${email}`
+        const url = `${process.env.CLIENT_URL}/change_password?token=${resetToken}&email=${email}`
 
         mailer.sendMail({
             from: process.env.MAILER_EMAIL,
@@ -112,7 +112,7 @@ app.get('/verify', (req, res) => {
 
         await pool.query('UPDATE users SET verified = true WHERE email = $1', [email]);
 
-        res.redirect('http://localhost:5173/account_verified');
+        res.redirect(process.env.CLIENT_URL + '/account_verified');
     })
 });
 
