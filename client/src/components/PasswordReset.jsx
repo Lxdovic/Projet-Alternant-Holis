@@ -1,37 +1,24 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import api from '../api'
-import { getProfile } from '../actions'
-import { useNavigate } from 'react-router-dom';
-import { TextField, Box, Paper, Button, Typography, Link } from '@mui/material';
-import { useSelector, useDispatch } from 'react-redux'
+import { TextField, Box, Paper, Button, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useState } from 'react'
 
-const Login = () => {
+const PasswordReset = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
-  const dispatch = useDispatch()
-  const profile = useSelector(state => state.profile)
-  
-  useEffect(() => {
-    if (!profile.user) return
-    navigate('/profile')
-  }, [profile])
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      const response = await api.post('http://localhost:5001/login', { email, password })
+      const response = await api.post('http://localhost:5001/reset_password', { email })
 
-      localStorage.setItem('session', JSON.stringify({accessToken: response.data.accessToken, refreshToken: response.data.refreshToken}))
-
-      const res = await api.get('http://localhost:5000/profile')
-  
-      dispatch(getProfile(res.data))
-
-      navigate('/profile')
+      toast(response.data.message, {
+        type: 'default',
+        theme: 'dark',
+        style: { background: '#282136' },
+        progressStyle: { background: '#4452FF', height: 2 }
+      })
     } catch (error) { 
       toast(error.response.data.message, {
         type: 'default', 
@@ -73,8 +60,8 @@ const Login = () => {
         </svg>
 
         <form onSubmit={handleSubmit}>
-          <Box  sx={{ display: 'flex', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 3 }}>
-            <Typography variant='h3' sx={{ color: 'white' }}>Login</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 3 }}>
+            <Typography variant='h3' sx={{ color: 'white' }}>Reset password</Typography>
             <TextField sx={{
               '& label': { color: '#C2C2C2', },
               '& label.Mui-focused': {color: '#C2C2C2' },
@@ -91,30 +78,13 @@ const Login = () => {
               type='email'
               required
             />
-
-            <TextField sx={{ 
-              '& label': { color: '#C2C2C2', },
-              '& label.Mui-focused': {color: '#C2C2C2' },
-              '& .MuiFilledInput-underline': {
-                '&:before': {  borderBottom: '1px solid #3A2D56'},
-                '&:after': {  borderBottom: '1px solid #3A2D56'},
-              }}} 
-              
-              InputProps={{ inputProps: { style: { color: '#fff' }}}} 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              label='Password' 
-              variant='filled'
-              type='password'
-              required
-            />
           </Box>
-                
+
+            
           <Box sx={{ display: 'flex', justifyContent: 'space-between'}}>      
-            <Button sx={{ backgroundColor: '#4452FF', ":hover": { backgroundColor: '#3A2D56' }}} type='submit' variant='contained'>Log in</Button>
+            <Button sx={{ backgroundColor: '#4452FF', ":hover": { backgroundColor: '#3A2D56' }}} type='submit' variant='contained'>Send</Button>
             <Box sx={{ display: 'flex', gap: 3 }}>
-              <Link sx={{ color: '#4452FF' }} href='/password_reset'>Forgot password</Link>
-              <Link sx={{ color: '#4452FF' }} href='/register'>Register</Link>
+              <Typography sx={{ color: '#C2C2C2' }}>Provide your email so we can send you a link to reset your password</Typography>
             </Box>
           </Box>
         </form>
@@ -123,4 +93,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default PasswordReset

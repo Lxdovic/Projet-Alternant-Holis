@@ -1,37 +1,40 @@
 import React, { useEffect } from 'react'
 import api from '../api'
-import { getProfile } from '../actions'
 import { useNavigate } from 'react-router-dom';
-import { TextField, Box, Paper, Button, Typography, Link } from '@mui/material';
-import { useSelector, useDispatch } from 'react-redux'
+import { TextField, Box, Paper, Button, Typography } from '@mui/material';
+import { useSearchParams } from "react-router-dom";
 import { toast } from 'react-toastify';
 import { useState } from 'react'
 
-const Login = () => {
-  const [email, setEmail] = useState('');
+const PasswordReset = () => {
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const navigate = useNavigate();
-  const dispatch = useDispatch()
-  const profile = useSelector(state => state.profile)
-  
-  useEffect(() => {
-    if (!profile.user) return
-    navigate('/profile')
-  }, [profile])
+  const [searchParams] = useSearchParams();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (password !== passwordConfirm) { 
+      return toast('Passwords do not match!', {
+        type: 'default',
+        theme: 'dark',
+        style: { background: '#282136' },
+        progressStyle: { background: '#4452FF', height: 2 }
+      })
+    }
+
     try {
-      const response = await api.post('http://localhost:5001/login', { email, password })
+      const response = await api.post('http://localhost:5001/change_password', { token: searchParams.get('token'), password: password });
+    
+      toast(response.data.message, {
+        type: 'default', 
+        theme: 'dark', 
+        style: { background: '#282136' }, 
+        progressStyle: { background: '#4452FF', height: 2 } 
+      })
 
-      localStorage.setItem('session', JSON.stringify({accessToken: response.data.accessToken, refreshToken: response.data.refreshToken}))
-
-      const res = await api.get('http://localhost:5000/profile')
-  
-      dispatch(getProfile(res.data))
-
-      navigate('/profile')
+      navigate('/login')
     } catch (error) { 
       toast(error.response.data.message, {
         type: 'default', 
@@ -73,26 +76,9 @@ const Login = () => {
         </svg>
 
         <form onSubmit={handleSubmit}>
-          <Box  sx={{ display: 'flex', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 3 }}>
-            <Typography variant='h3' sx={{ color: 'white' }}>Login</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 3 }}>
+            <Typography variant='h2' sx={{ color: 'white' }}>Change password</Typography>
             <TextField sx={{
-              '& label': { color: '#C2C2C2', },
-              '& label.Mui-focused': {color: '#C2C2C2' },
-              '& .MuiFilledInput-underline': {
-                '&:before': {  borderBottom: '1px solid #3A2D56'},
-                '&:after': {  borderBottom: '1px solid #3A2D56'},
-              }}} 
-              
-              InputProps={{ inputProps: { style: { color: '#fff' }}}} 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              label='Email' 
-              variant='filled'
-              type='email'
-              required
-            />
-
-            <TextField sx={{ 
               '& label': { color: '#C2C2C2', },
               '& label.Mui-focused': {color: '#C2C2C2' },
               '& .MuiFilledInput-underline': {
@@ -108,14 +94,28 @@ const Login = () => {
               type='password'
               required
             />
+
+            <TextField sx={{
+              '& label': { color: '#C2C2C2', },
+              '& label.Mui-focused': {color: '#3A2D56' },
+              '& .MuiFilledInput-underline': {
+                '&:before': {  borderBottom: '1px solid #3A2D56'},
+                '&:after': {  borderBottom: '1px solid #3A2D56'},
+              }}} 
+              
+              InputProps={{ inputProps: { style: { color: '#fff' }}}} 
+              value={passwordConfirm} 
+              onChange={(e) => setPasswordConfirm(e.target.value)} 
+              label='Confirm password' 
+              variant='filled'
+              type='password'
+              required
+            />
           </Box>
-                
+
+            
           <Box sx={{ display: 'flex', justifyContent: 'space-between'}}>      
-            <Button sx={{ backgroundColor: '#4452FF', ":hover": { backgroundColor: '#3A2D56' }}} type='submit' variant='contained'>Log in</Button>
-            <Box sx={{ display: 'flex', gap: 3 }}>
-              <Link sx={{ color: '#4452FF' }} href='/password_reset'>Forgot password</Link>
-              <Link sx={{ color: '#4452FF' }} href='/register'>Register</Link>
-            </Box>
+            <Button sx={{ backgroundColor: '#4452FF', ":hover": { backgroundColor: '#3A2D56' }}} type='submit' variant='contained'>Send</Button>
           </Box>
         </form>
       </Paper>
@@ -123,4 +123,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default PasswordReset

@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { Box } from '@mui/material'
 import Navbar from './components/Navbar/Navbar.jsx'
 import { getProfile } from './actions'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import api from './api'
 
 function App() {
@@ -25,6 +27,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Box sx={{ 
         display: 'flex',
         backgroundColor: '#221C2D',

@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { Box, Avatar, Typography } from '@mui/material';
+import React, { useState } from 'react'
+import { Box, Avatar, Typography, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { Home } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 import AccountAccordion from './AccountAccordion.jsx'
 import MenuAccordion from './MenuAccordion.jsx'
 
 const Navbar = () => {
+    const navigate = useNavigate();
     const profile = useSelector(state => state.profile)
     const [expanded, setExpanded] = useState(false);
     const handleChange = (isExpanded, panel) => {
@@ -19,17 +22,17 @@ const Navbar = () => {
             width: 240,
             height: '100vh',
             backgroundColor: '#282136',
-            borderRight: "1px solid #4452FF",
+            borderRight: '1px solid #4452FF',
         }}>
             <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 3,
-                height: 100, backgroundColor: "#282136", borderBottom: '1px solid #3A2D56'
+                height: 100, backgroundColor: '#282136', borderBottom: '1px solid #3A2D56'
             }}>
 
-                <Avatar alt="Avatar" src={profile?.user ? 'data:image/gif;base64, ' + b64 : ''} />
+                <Avatar alt='Avatar' src={profile?.user?.profile_picture ? 'data:image/gif;base64, ' + b64 : 'pfp.svg'} />
                 
                 <Box sx={{
                     width: 150,
@@ -55,6 +58,17 @@ const Navbar = () => {
                 expanded={expanded === 1}
                 onChange={(event, isExpanded) => handleChange(isExpanded, 1)}>
             </MenuAccordion>
+
+            <ListItemButton 
+                onClick={() => navigate('/')}
+                sx={{
+                    height: 38,
+                    borderRadius: 1,
+                }}
+            >
+                <ListItemIcon>{<Home style={{ color: '#C2C2C2'}}/>}</ListItemIcon>
+                <ListItemText sx={{ color: '#fff' }} primary="Home" />
+            </ListItemButton>
         </Box>
     );
 }

@@ -1,16 +1,18 @@
 import { useEffect } from 'react'
-import { delProfile } from '../actions'
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux'
+import { toast } from 'react-toastify';
 
 const Logout = () => {
-  const dispatch = useDispatch()
   const navigate = useNavigate()
   
   useEffect(() => {
-    localStorage.removeItem('session')
-    dispatch(delProfile())
     navigate('/login')
+    toast('Account verified!', { 
+      type: 'default', 
+      theme: 'dark', 
+      style: { background: '#282136' }, 
+      progressStyle: { background: '#4452FF', height: 2 } 
+    })
   }, [])
 
   return;

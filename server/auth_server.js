@@ -63,6 +63,45 @@ app.post('/token', async (req, res) => {
     })
 })
 
+app.post('/change_password', (req, res) => {
+    const { token, password } = req.body;
+
+    if (!token || !password) { return res.status(400).json({ message: 'Invalid password/token.' }); }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+        if (err) { console.log(err); return res.status(403).json({ message: 'Invalid token.' }) }
+
+        const hash = await hashPassword(password);
+        await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hash, user.email]);
+
+        res.status(200).json({ message: 'Password changed.' });
+    })
+});
+
+app.post('/reset_password', async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) { return res.status(400).json({ message: 'Invalid email.' }); }
+
+    try {
+        const result = await pool.query('SELECT username, email FROM users WHERE email = $1', [email]);
+
+        if (result.rows.length == 0) { return res.status(400).json({ message: 'Invalid email.' }); }
+
+        const resetToken = generateAccess({ email }, '20m')
+        const url = `http://localhost:5173/change_password?token=${resetToken}&email=${email}`
+
+        mailer.sendMail({
+            from: process.env.MAILER_EMAIL,
+            to: email,
+            subject: 'Password reset',
+            text: `Hello ${result.rows[0].username}. Click the link below to change your password. For security reasons, this link is valid for 20 minutes\n\n ${url}`
+        });
+
+        res.status(200).json({ message: 'An email was sent, click the link to reset your password.' });
+    } catch (err) { res.status(400).json({ message: 'An error occured, please retry later.' }) }
+});
+
 app.get('/verify', (req, res) => {
     const { token, email } = req.query;
 
@@ -73,7 +112,7 @@ app.get('/verify', (req, res) => {
 
         await pool.query('UPDATE users SET verified = true WHERE email = $1', [email]);
 
-        res.status(200).json({ message: 'Account verified.' })
+        res.redirect('http://localhost:5173/account_verified');
     })
 });
 
@@ -81,23 +120,18 @@ app.get('/forgot_pass', async (req, res) => {
     const { email } = req.body;
 
     if (!email) { return res.status(400).json({ message: 'Please provide an email.'})}
-
-    
 })
 
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
-    const { image } = req.files;
 
-    console.log(image);
-
-    if (!username || !email || !password || !image) { return res.status(400).json({ message: 'Please enter all fields.' }); }
+    if (!username || !email || !password) { return res.status(400).json({ message: 'Please enter all fields.' }); }
 
     try {
         const hash = await hashPassword(password);
         const user = await pool.query(
-            'INSERT INTO users (profile_picture, email, username, password) VALUES ($1, $2, $3, $4)', 
-            [image.data, email, username, hash]
+            'INSERT INTO users (email, username, password) VALUES ($1, $2, $3)', 
+            [email, username, hash]
         );
 
         const verifyToken = generateAccess({ user: email }, '15m')
@@ -107,7 +141,7 @@ app.post('/register', async (req, res) => {
             from: process.env.MAILER_EMAIL,
             to: email,
             subject: 'Welcome to the app!',
-            text: `Hello ${username}! Welcome to the app. To verify your account, click the link below. For security reasons, this link is valid for 10sins \n ${url}`
+            text: `Hello ${username}! Welcome to the app. To verify your account, click the link below. For security reasons, this link is valid for 15 minutes.\n\n ${url}`
         });
 
         res.status(200).json({ message: 'User registered.', user });
